@@ -11,47 +11,110 @@ import Layout from "./components/Layout";
 import Profile from "./components/Profile";
 import Logout from "./components/Logout";
 
+// ⏬ Import new components
+import AddVideo from "./components/AddVideo";
+import VideoList from "./components/VideoList";
+
 const App = () => {
   const router = createBrowserRouter([
     {
       path: "/",
-      element: <Layout><Dashboard /></Layout>
+      element: (
+        <Layout>
+          <Dashboard />
+        </Layout>
+      ),
     },
     {
       path: "/admin-list",
-      element: <Layout><AdminList /></Layout>
+      element: (
+        <Layout>
+          <AdminList />
+        </Layout>
+      ),
     },
     {
       path: "/add-photo",
-      element: <Layout><AddPhoto /></Layout>
+      element: (
+        <Layout>
+          <AddPhoto />
+        </Layout>
+      ),
     },
     {
       path: "/photo-list",
-      element: <Layout><PhotoList /></Layout>
+      element: (
+        <Layout>
+          <PhotoList />
+        </Layout>
+      ),
     },
     {
       path: "/add-blog",
-      element: <Layout><AddBlog /></Layout>
+      element: (
+        <Layout>
+          <AddBlog />
+        </Layout>
+      ),
     },
     {
       path: "/blog-list",
-      element: <Layout><BlogList /></Layout>
+      element: (
+        <Layout>
+          <BlogList />
+        </Layout>
+      ),
     },
     {
       path: "/review",
-      element: <Layout><Review /></Layout>
+      element: (
+        <Layout>
+          <Review />
+        </Layout>
+      ),
     },
     {
       path: "/contacts",
-      element: <Layout><Contacts /></Layout>
+      element: (
+        <Layout>
+          <Contacts />
+        </Layout>
+      ),
+    },
+
+    // ⏬ NEW ROUTES
+    {
+      path: "/add-video",
+      element: (
+        <Layout>
+          <AddVideo />
+        </Layout>
+      ),
     },
     {
+      path: "/video-list",
+      element: (
+        <Layout>
+          <VideoList />
+        </Layout>
+      ),
+    },
+
+    {
       path: "/profile",
-      element: <Layout><Profile /></Layout>
+      element: (
+        <Layout>
+          <Profile />
+        </Layout>
+      ),
     },
     {
       path: "/logout",
-      element: <Layout><Logout /></Layout>
+      element: (
+        <Layout>
+          <Logout />
+        </Layout>
+      ),
     },
   ]);
 

@@ -6,6 +6,7 @@ import {
   PencilSquareIcon,
   ChatBubbleLeftRightIcon,
   PhoneIcon,
+  VideoCameraIcon,
   XMarkIcon
 } from "@heroicons/react/24/outline";
 
@@ -14,10 +15,13 @@ const menuItems = [
   { name: "Admin List", path: "/admin-list", icon: <ClipboardDocumentListIcon className="h-5 w-5" /> },
   { name: "Add Photo", path: "/add-photo", icon: <PhotoIcon className="h-5 w-5" /> },
   { name: "Photo List", path: "/photo-list", icon: <PhotoIcon className="h-5 w-5" /> },
+  { name: "Add Video", path: "/add-video", icon: <VideoCameraIcon className="h-5 w-5" /> },
+  { name: "Video List", path: "/video-list", icon: <VideoCameraIcon className="h-5 w-5" /> },
   { name: "Add Blog", path: "/add-blog", icon: <PencilSquareIcon className="h-5 w-5" /> },
   { name: "Blog List", path: "/blog-list", icon: <ClipboardDocumentListIcon className="h-5 w-5" /> },
   { name: "Review", path: "/review", icon: <ChatBubbleLeftRightIcon className="h-5 w-5" /> },
   { name: "Contacts", path: "/contacts", icon: <PhoneIcon className="h-5 w-5" /> },
+ 
 ];
 
 const Sidebar = ({ open, setOpen }) => {
@@ -56,14 +60,14 @@ const Sidebar = ({ open, setOpen }) => {
                   to={item.path}
                   className={({ isActive }) =>
                     `
-                    flex items-center gap-4 px-4 py-3 rounded-xl
-                    transition-all duration-200 font-medium
-                    ${
-                      isActive
-                        ? "bg-blue-600 from-blue-600 to-blue-500 text-white shadow-lg scale-[1.02]"
-                        : "text-gray-700 hover:bg-gray-100"
-                    }
-                  `
+                      flex items-center gap-4 px-4 py-3 rounded-xl
+                      transition-all duration-200 font-medium
+                      ${
+                        isActive
+                          ? "bg-blue-600 text-white shadow-lg scale-[1.02]"
+                          : "text-gray-700 hover:bg-gray-100"
+                      }
+                    `
                   }
                   onClick={() => setOpen(false)}
                 >

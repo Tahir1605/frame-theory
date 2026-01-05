@@ -12,7 +12,7 @@ import {
 
 const menuItems = [
   { name: "Dashboard", path: "/", icon: <HomeIcon className="h-5 w-5" /> },
-  { name: "Admin List", path: "/admin-list", icon: <ClipboardDocumentListIcon className="h-5 w-5" /> },
+  { name: "Admin", path: "/admin", icon: <ClipboardDocumentListIcon className="h-5 w-5" /> },
   { name: "Add Photo", path: "/add-photo", icon: <PhotoIcon className="h-5 w-5" /> },
   { name: "Photo List", path: "/photo-list", icon: <PhotoIcon className="h-5 w-5" /> },
   { name: "Add Video", path: "/add-video", icon: <VideoCameraIcon className="h-5 w-5" /> },

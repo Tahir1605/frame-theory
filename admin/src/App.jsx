@@ -1,7 +1,7 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import AddBlog from "./components/AddBlog";
 import AddPhoto from "./components/AddPhoto";
-import AdminList from "./components/AdminList";
+import Admin from "./components/Admin";
 import BlogList from "./components/BlogList";
 import Contacts from "./components/Contacts";
 import Dashboard from "./components/Dashboard";
@@ -26,10 +26,10 @@ const App = () => {
       ),
     },
     {
-      path: "/admin-list",
+      path: "/admin",
       element: (
         <Layout>
-          <AdminList />
+          <Admin/>
         </Layout>
       ),
     },

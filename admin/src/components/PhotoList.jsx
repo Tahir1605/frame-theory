@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TrashIcon } from "@heroicons/react/24/outline";
+import { TrashIcon, PhotoIcon } from "@heroicons/react/24/outline";
 
 const demoPhotos = [
   { id: 1, name: "Nature View", category: "Photo", img: "https://picsum.photos/200?1" },
@@ -24,48 +24,66 @@ const PhotoList = () => {
   };
 
   return (
-    <div className="mt-16 px-4">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">
-        Photo List
-      </h2>
+    <div className="mt-14 px-4 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="mb-8">
+        <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight">
+          Photo Library
+        </h2>
+        <p className="text-gray-500 mt-1">
+          Manage uploaded photos & events
+        </p>
+      </div>
 
       {/* Desktop Table */}
-      <div className="hidden md:block bg-white rounded-2xl shadow-xl border border-gray-100 overflow-x-auto">
-        <table className="w-full text-left">
-          <thead className="bg-gray-50 text-gray-600 uppercase text-sm">
+      <div className="hidden md:block bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-gray-50 text-gray-600 text-sm">
             <tr>
-              <th className="px-6 py-4">Photo</th>
-              <th className="px-6 py-4">Name</th>
-              <th className="px-6 py-4">Category</th>
-              <th className="px-6 py-4 text-center">Action</th>
+              <th className="px-8 py-5 text-left">Photo</th>
+              <th className="px-8 py-5 text-left">Name</th>
+              <th className="px-8 py-5 text-left">Category</th>
+              <th className="px-8 py-5 text-center">Action</th>
             </tr>
           </thead>
 
           <tbody>
-            {photos.map((photo) => (
+            {photos.map((photo, index) => (
               <tr
                 key={photo.id}
-                className="border-t hover:bg-gray-50 transition"
+                className={`${
+                  index % 2 === 0 ? "bg-white" : "bg-gray-50/50"
+                } hover:bg-gray-100 transition`}
               >
-                <td className="px-6 py-4">
+                {/* Photo */}
+                <td className="px-8 py-5">
                   <img
                     src={photo.img}
                     alt={photo.name}
-                    className="w-16 h-16 rounded-xl object-cover shadow"
+                    className="w-16 h-16 rounded-2xl object-cover shadow-md"
                   />
                 </td>
 
-                <td className="px-6 py-4 font-semibold text-gray-700">
-                  {photo.name}
+                {/* Name */}
+                <td className="px-8 py-5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to from-indigo-600 to-blue-600 flex items-center justify-center text-white">
+                      <PhotoIcon className="w-5 h-5" />
+                    </div>
+                    <span className="font-semibold text-gray-900">
+                      {photo.name}
+                    </span>
+                  </div>
                 </td>
 
-                <td className="px-6 py-4">
+                {/* Category */}
+                <td className="px-8 py-5">
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-semibold
                       ${
                         photo.category === "Photo"
-                          ? "bg-blue-100 text-blue-600"
-                          : "bg-purple-100 text-purple-600"
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-purple-100 text-purple-700"
                       }
                     `}
                   >
@@ -73,10 +91,12 @@ const PhotoList = () => {
                   </span>
                 </td>
 
-                <td className="px-6 py-4 text-center">
+                {/* Action */}
+                <td className="px-8 py-5 text-center">
                   <button
                     onClick={() => handleDelete(photo.id)}
-                    className="p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition cursor-pointer"
+                    className="p-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition cursor-pointer"
+                    title="Delete Photo"
                   >
                     <TrashIcon className="w-5 h-5" />
                   </button>
@@ -88,19 +108,19 @@ const PhotoList = () => {
       </div>
 
       {/* Mobile Cards */}
-      <div className="md:hidden space-y-5">
+      <div className="md:hidden space-y-4">
         {photos.map((photo) => (
           <div
             key={photo.id}
-            className="bg-white rounded-2xl shadow-lg p-5 border border-gray-100"
+            className="bg-white rounded-2xl shadow-md p-5 border border-gray-100"
           >
             <img
               src={photo.img}
               alt={photo.name}
-              className="w-full h-44 object-cover rounded-xl mb-4"
+              className="w-full h-48 object-cover rounded-xl mb-4"
             />
 
-            <h3 className="text-lg font-bold text-gray-800">
+            <h3 className="text-lg font-bold text-gray-900">
               {photo.name}
             </h3>
 
@@ -108,8 +128,8 @@ const PhotoList = () => {
               className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold
                 ${
                   photo.category === "Photo"
-                    ? "bg-blue-100 text-blue-600"
-                    : "bg-purple-100 text-purple-600"
+                    ? "bg-blue-100 text-blue-700"
+                    : "bg-purple-100 text-purple-700"
                 }
               `}
             >
@@ -118,8 +138,9 @@ const PhotoList = () => {
 
             <button
               onClick={() => handleDelete(photo.id)}
-              className="mt-4 w-full py-2 rounded-xl bg-red-100 text-red-600 font-semibold hover:bg-red-200 transition cursor-pointer"
+              className="mt-4 w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-red-50 text-red-700 font-semibold hover:bg-red-100 transition cursor-pointer"
             >
+              <TrashIcon className="w-5 h-5" />
               Delete
             </button>
           </div>

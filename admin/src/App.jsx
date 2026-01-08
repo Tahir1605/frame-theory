@@ -14,6 +14,8 @@ import Logout from "./components/Logout";
 // ⏬ Import new components
 import AddVideo from "./components/AddVideo";
 import VideoList from "./components/VideoList";
+import EditPhoto from "./components/EditPhoto";
+import EditPhotoList from "./components/EditPhotoList";
 
 const App = () => {
   const router = createBrowserRouter([
@@ -29,7 +31,7 @@ const App = () => {
       path: "/admin",
       element: (
         <Layout>
-          <Admin/>
+          <Admin />
         </Layout>
       ),
     },
@@ -46,6 +48,22 @@ const App = () => {
       element: (
         <Layout>
           <PhotoList />
+        </Layout>
+      ),
+    },
+    {
+      path: "/edit-photo",
+      element: (
+        <Layout>
+          <EditPhoto/>
+        </Layout>
+      ),
+    },
+    {
+      path: "/edit-photo-list",
+      element: (
+        <Layout>
+          <EditPhotoList/>
         </Layout>
       ),
     },

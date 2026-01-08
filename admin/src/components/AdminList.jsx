@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   PencilSquareIcon,
   TrashIcon,
   EyeIcon,
   EyeSlashIcon,
+  MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 
 const adminData = [
@@ -28,21 +29,80 @@ const adminData = [
     password: "Ayesha@789",
     photo: "https://i.pravatar.cc/150?img=7",
   },
+  {
+    id: 4,
+    name: "Imran Khan",
+    email: "imran@example.com",
+    password: "Imran@321",
+    photo: "https://i.pravatar.cc/150?img=9",
+  },
+  {
+    id: 5,
+    name: "Sneha Roy",
+    email: "sneha@example.com",
+    password: "Sneha@555",
+    photo: "https://i.pravatar.cc/150?img=11",
+  },
+  {
+    id: 6,
+    name: "Arjun Mehta",
+    email: "arjun@example.com",
+    password: "Arjun@999",
+    photo: "https://i.pravatar.cc/150?img=13",
+  },
 ];
+
+const ITEMS_PER_PAGE = 5;
 
 const AdminList = () => {
   const [visiblePassword, setVisiblePassword] = useState(null);
+  const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  /* 🔍 Search */
+  const filteredAdmins = useMemo(() => {
+    return adminData.filter(
+      (a) =>
+        a.name.toLowerCase().includes(search.toLowerCase()) ||
+        a.email.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [search]);
+
+  /* 📄 Pagination */
+  const totalPages = Math.ceil(filteredAdmins.length / ITEMS_PER_PAGE);
+  const paginatedAdmins = filteredAdmins.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   return (
-    <div className="mt-16 px-4">
-      <h3 className="text-3xl font-extrabold text-gray-800 mb-8 tracking-tight">
-        Admin Management
-      </h3>
+    <div className="mt-16 px-4 max-w-7xl mx-auto">
 
-      {/* ===== Desktop Table ===== */}
-      <div className="hidden md:block bg-white/80 backdrop-blur rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
+      {/* ================= HEADER ================= */}
+      <div className="flex flex-col md:flex-row justify-between gap-4 mb-8">
+        <h3 className="text-3xl font-extrabold text-gray-800">
+          Admin Management
+        </h3>
+
+        <div className="relative w-full md:w-72">
+          <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search admin..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-100 outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+      </div>
+
+      {/* ================= DESKTOP TABLE ================= */}
+      <div className="hidden md:block bg-white rounded-3xl shadow-xl overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gradient-to from-gray-50 to-gray-100 text-gray-600 text-sm">
+          <thead className="bg-gray-50 text-sm text-gray-600">
             <tr>
               <th className="px-8 py-5 text-left">Admin</th>
               <th className="px-8 py-5 text-left">Email</th>
@@ -52,50 +112,35 @@ const AdminList = () => {
           </thead>
 
           <tbody>
-            {adminData.map((admin) => (
-              <tr
-                key={admin.id}
-                className="border-t hover:bg-gray-50/70 transition-all"
-              >
-                {/* Admin */}
-                <td className="px-8 py-5">
-                  <div className="flex items-center gap-4">
-                    <img
-                      src={admin.photo}
-                      alt={admin.name}
-                      className="w-12 h-12 rounded-full ring-2 ring-white shadow object-cover"
-                    />
-                    <div>
-                      <p className="font-semibold text-gray-800">
-                        {admin.name}
-                      </p>
-                      <span className="text-xs text-gray-500">
-                        Administrator
-                      </span>
-                    </div>
-                  </div>
+            {paginatedAdmins.map((admin) => (
+              <tr key={admin.id} className="hover:bg-gray-50">
+                <td className="px-8 py-5 flex items-center gap-4">
+                  <img
+                    src={admin.photo}
+                    className="w-12 h-12 rounded-full object-cover"
+                    alt=""
+                  />
+                  <span className="font-semibold">{admin.name}</span>
                 </td>
 
-                {/* Email */}
                 <td className="px-8 py-5 text-gray-600">
                   {admin.email}
                 </td>
 
-                {/* Password */}
                 <td className="px-8 py-5">
                   <div className="flex items-center gap-3">
-                    <span className="font-mono text-sm tracking-wide">
+                    <span className="font-mono text-sm">
                       {visiblePassword === admin.id
                         ? admin.password
                         : "••••••••"}
                     </span>
                     <button
+                     className="cursor-pointer"
                       onClick={() =>
                         setVisiblePassword(
                           visiblePassword === admin.id ? null : admin.id
                         )
                       }
-                      className="p-1 rounded-md text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 transition"
                     >
                       {visiblePassword === admin.id ? (
                         <EyeSlashIcon className="w-5 h-5" />
@@ -106,13 +151,12 @@ const AdminList = () => {
                   </div>
                 </td>
 
-                {/* Actions */}
                 <td className="px-8 py-5">
                   <div className="flex justify-center gap-3">
-                    <button className="p-2.5 rounded-xl bg-emerald-100 text-emerald-600 hover:bg-emerald-200 hover:scale-105 transition">
+                    <button className="p-2.5 cursor-pointer rounded-xl bg-emerald-100 text-emerald-600">
                       <PencilSquareIcon className="w-5 h-5" />
                     </button>
-                    <button className="p-2.5 rounded-xl bg-red-100 text-red-600 hover:bg-red-200 hover:scale-105 transition">
+                    <button className="p-2.5 cursor-pointer rounded-xl bg-red-100 text-red-600">
                       <TrashIcon className="w-5 h-5" />
                     </button>
                   </div>
@@ -123,66 +167,80 @@ const AdminList = () => {
         </table>
       </div>
 
-      {/* ===== Mobile Cards ===== */}
-      <div className="md:hidden space-y-6">
-        {adminData.map((admin) => (
+      {/* ================= MOBILE / TABLET CARDS ================= */}
+      <div className="md:hidden space-y-4">
+        {paginatedAdmins.map((admin) => (
           <div
             key={admin.id}
-            className="bg-white rounded-3xl shadow-xl p-5 border border-gray-100"
+            className="bg-white rounded-2xl shadow p-5"
           >
             <div className="flex items-center gap-4">
               <img
                 src={admin.photo}
-                alt={admin.name}
-                className="w-16 h-16 rounded-full shadow ring-2 ring-white"
+                className="w-12 h-12 rounded-full"
+                alt=""
               />
               <div>
-                <h4 className="font-bold text-gray-800 text-lg">
-                  {admin.name}
-                </h4>
-                <p className="text-sm text-gray-500">
+                <h4 className="font-semibold">{admin.name}</h4>
+                <p className="text-sm text-gray-500 break-all">
                   {admin.email}
                 </p>
               </div>
             </div>
 
-            {/* Password */}
-            <div className="mt-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="font-mono text-sm">
-                  {visiblePassword === admin.id
-                    ? admin.password
-                    : "••••••••"}
-                </span>
-                <button
-                  onClick={() =>
-                    setVisiblePassword(
-                      visiblePassword === admin.id ? null : admin.id
-                    )
-                  }
-                  className="p-1 rounded-md text-gray-500 hover:text-indigo-600"
-                >
-                  {visiblePassword === admin.id ? (
-                    <EyeSlashIcon className="w-5 h-5" />
-                  ) : (
-                    <EyeIcon className="w-5 h-5" />
-                  )}
-                </button>
-              </div>
+            <div className="flex items-center justify-between mt-4">
+              <span className="font-mono text-sm">
+                {visiblePassword === admin.id
+                  ? admin.password
+                  : "••••••••"}
+              </span>
 
-              {/* Actions */}
-              <div className="flex gap-3">
-                <button className="p-2.5 rounded-xl bg-emerald-100 text-emerald-600">
-                  <PencilSquareIcon className="w-5 h-5" />
-                </button>
-                <button className="p-2.5 rounded-xl bg-red-100 text-red-600">
-                  <TrashIcon className="w-5 h-5" />
-                </button>
-              </div>
+              <button
+                onClick={() =>
+                  setVisiblePassword(
+                    visiblePassword === admin.id ? null : admin.id
+                  )
+                }
+              >
+                {visiblePassword === admin.id ? (
+                  <EyeSlashIcon className="w-5 h-5" />
+                ) : (
+                  <EyeIcon className="w-5 h-5" />
+                )}
+              </button>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-4">
+              <button className="p-2 cursor-pointer rounded-xl bg-emerald-100 text-emerald-600">
+                <PencilSquareIcon className="w-5 h-5" />
+              </button>
+              <button className="p-2 cursor-pointer rounded-xl bg-red-100 text-red-600">
+                <TrashIcon className="w-5 h-5" />
+              </button>
             </div>
           </div>
         ))}
       </div>
+
+      {/* ================= PAGINATION ================= */}
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-8 gap-2">
+          {Array.from({ length: totalPages }).map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrentPage(i + 1)}
+              className={`px-4 cursor-pointer py-2 rounded-xl font-semibold
+                ${
+                  currentPage === i + 1
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-100 text-gray-600"
+                }`}
+            >
+              {i + 1}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

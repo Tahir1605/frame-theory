@@ -1,83 +1,208 @@
 import { useState } from "react";
-import { TrashIcon } from "@heroicons/react/24/outline";
+import {
+  TrashIcon,
+  StarIcon,
+  PhotoIcon,
+} from "@heroicons/react/24/outline";
+import { StarIcon as StarSolid } from "@heroicons/react/24/solid";
 
+/* ================= DEMO DATA ================= */
 const allReviews = Array.from({ length: 20 }, (_, i) => ({
   id: i + 1,
   name: `Customer ${i + 1}`,
   email: `customer${i + 1}@gmail.com`,
-  rating: 5,
+  rating: Math.floor(Math.random() * 2) + 4,
 }));
 
-const Review = () => {
-  const [visibleCount, setVisibleCount] = useState(10);
-  const [reviews, setReviews] = useState(allReviews);
+const ITEMS_PER_PAGE = 5;
 
+const Review = () => {
+  const [reviews, setReviews] = useState(allReviews);
+  const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    rating: 0,
+    comment: "",
+    photo: null,
+  });
+
+  /* ================= SEARCH ================= */
+  const filteredReviews = reviews.filter(
+    (r) =>
+      r.name.toLowerCase().includes(search.toLowerCase()) ||
+      r.email.toLowerCase().includes(search.toLowerCase())
+  );
+
+  /* ================= PAGINATION ================= */
+  const totalPages = Math.ceil(filteredReviews.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedReviews = filteredReviews.slice(
+    startIndex,
+    startIndex + ITEMS_PER_PAGE
+  );
+
+  /* ================= DELETE ================= */
   const handleDelete = (id) => {
     if (window.confirm("Delete this review?")) {
       setReviews(reviews.filter((r) => r.id !== id));
+      setCurrentPage(1);
     }
   };
 
+  /* ================= SUBMIT ================= */
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!form.name || !form.email || !form.rating) {
+      alert("Please fill all required fields");
+      return;
+    }
+
+    setReviews([
+      {
+        id: reviews.length + 1,
+        name: form.name,
+        email: form.email,
+        rating: form.rating,
+      },
+      ...reviews,
+    ]);
+
+    setForm({
+      name: "",
+      email: "",
+      rating: 0,
+      comment: "",
+      photo: null,
+    });
+  };
+
   return (
-    <div className="mt-14 px-4 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight">
-          Customer Reviews
-        </h2>
-        <p className="text-gray-500 mt-1">
-          Feedback shared by customers
-        </p>
+    <div className="mt-14 px-3 sm:px-6 max-w-7xl mx-auto overflow-x-hidden">
+
+      {/* ================= ADD REVIEW FORM ================= */}
+      <div className="mb-12 bg-white rounded-2xl shadow-lg p-5 sm:p-7">
+        <h3 className="text-xl sm:text-2xl font-bold mb-6">
+          Add New Review
+        </h3>
+
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 md:grid-cols-2 gap-5"
+        >
+          <input
+            type="text"
+            placeholder="Customer Name *"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            className="px-4 py-2.5 rounded-xl bg-gray-100 outline-none focus:ring-2 focus:ring-blue-500"
+          />
+
+          <input
+            type="email"
+            placeholder="Customer Email *"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            className="px-4 py-2.5 rounded-xl bg-gray-100 outline-none focus:ring-2 focus:ring-blue-500"
+          />
+
+          <label className="flex items-center gap-3 px-4 py-2.5 rounded-xl border-dashed border-blue-600 bg-gray-100 cursor-pointer md:col-span-1">
+            <PhotoIcon className="w-5 h-5 text-gray-500" />
+            <span className="text-sm">Upload Customer Photo</span>
+            <input
+              type="file"
+              hidden
+              onChange={(e) =>
+                setForm({ ...form, photo: e.target.files[0] })
+              }
+            />
+          </label>
+
+          <div className="flex gap-2 items-center">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button
+                key={star}
+                type="button"
+                onClick={() => setForm({ ...form, rating: star })}
+              >
+                {form.rating >= star ? (
+                  <StarSolid className="w-6 h-6 text-yellow-400" />
+                ) : (
+                  <StarIcon className="w-6 h-6 text-gray-300" />
+                )}
+              </button>
+            ))}
+          </div>
+
+          <textarea
+            placeholder="Customer Comment"
+            rows="4"
+            className="md:col-span-2 px-4 py-2.5 rounded-xl bg-gray-100 outline-none focus:ring-2 focus:ring-blue-500"
+          />
+
+          <button className="md:col-span-2 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">
+            Submit Review
+          </button>
+        </form>
       </div>
 
-      {/* Desktop Table */}
-      <div className="hidden md:block bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50 text-gray-600 text-sm">
+      {/* ================= HEADER + SEARCH ================= */}
+      <div className="flex flex-col sm:flex-row justify-between gap-4 mb-8">
+        <div>
+          <h2 className="text-3xl sm:text-4xl font-extrabold">
+            Customer Reviews
+          </h2>
+          <p className="text-gray-500">
+            Feedback shared by customers
+          </p>
+        </div>
+
+        <input
+          type="text"
+          placeholder="Search by name or email..."
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setCurrentPage(1);
+          }}
+          className="w-full sm:w-64 px-4 py-2.5 rounded-xl bg-gray-100 outline-none focus:ring-2 focus:ring-indigo-500"
+        />
+      </div>
+
+      {/* ================= DESKTOP TABLE ================= */}
+      <div className="hidden md:block bg-white rounded-2xl shadow-lg overflow-hidden">
+        <table className="w-full table-fixed">
+          <thead className="bg-gray-50 text-sm text-gray-600">
             <tr>
-              <th className="px-8 py-5 text-left">Customer</th>
-              <th className="px-8 py-5 text-left">Email</th>
-              <th className="px-8 py-5 text-left">Rating</th>
-              <th className="px-8 py-5 text-center">Action</th>
+              <th className="px-4 py-4 text-left">Customer</th>
+              <th className="px-4 py-4 text-left">Email</th>
+              <th className="px-4 py-4 w-[120px]">Rating</th>
+              <th className="px-4 py-4 w-[90px] text-center">Action</th>
             </tr>
           </thead>
 
           <tbody>
-            {reviews.slice(0, visibleCount).map((review, index) => (
-              <tr
-                key={review.id}
-                className={`${
-                  index % 2 === 0 ? "bg-white" : "bg-gray-50/40"
-                } hover:bg-gray-100 transition`}
-              >
-                <td className="px-8 py-5">
-                  <div className="flex items-center gap-4">
-                    {/* <div className="w-11 h-11 rounded-full bg-gradient-to from-yellow-400 to-orange-500 flex items-center justify-center text-white font-bold">
-                      {review.name.charAt(0)}
-                    </div> */}
-                    <span className="font-semibold text-gray-900">
-                      {review.name}
-                    </span>
-                  </div>
+            {paginatedReviews.map((r, i) => (
+              <tr key={r.id} className={i % 2 ? "bg-gray-50" : ""}>
+                <td className="px-4 py-3 font-semibold truncate">
+                  {r.name}
                 </td>
-
-                <td className="px-8 py-5 text-gray-600">
-                  {review.email}
+                <td className="px-4 py-3 text-gray-600 truncate">
+                  {r.email}
                 </td>
-
-                <td className="px-8 py-5">
-                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
-                    ⭐ {review.rating}.0
+                <td className="px-4 py-3">
+                  <span className="px-3 py-1 text-xs bg-yellow-100 text-yellow-700 rounded-full">
+                    ⭐ {r.rating}.0
                   </span>
                 </td>
-
-                <td className="px-8 py-5 text-center">
+                <td className="px-4 py-3 text-center">
                   <button
-                    onClick={() => handleDelete(review.id)}
-                    className="p-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition cursor-pointer"
-                    title="Delete Review"
+                    onClick={() => handleDelete(r.id)}
+                    className="p-2 cursor-pointer rounded-lg bg-red-50 text-red-600 hover:bg-red-100"
                   >
-                    <TrashIcon className="w-5 h-5" />
+                    <TrashIcon className="w-4 h-4" />
                   </button>
                 </td>
               </tr>
@@ -86,52 +211,50 @@ const Review = () => {
         </table>
       </div>
 
-      {/* Mobile Cards */}
+      {/* ================= MOBILE CARDS ================= */}
       <div className="md:hidden space-y-4">
-        {reviews.slice(0, visibleCount).map((review) => (
-          <div
-            key={review.id}
-            className="bg-white rounded-2xl shadow-md p-5 border border-gray-100"
-          >
-            <div className="flex items-center gap-3">
-              {/* <div className="w-10 h-10 rounded-full bg-gradient-to from-yellow-400 to-orange-500 flex items-center justify-center text-white font-bold">
-                {review.name.charAt(0)}
-              </div> */}
+        {paginatedReviews.map((r) => (
+          <div key={r.id} className="bg-white p-4 rounded-xl shadow">
+            <div className="flex justify-between gap-2">
               <div>
-                <h3 className="font-semibold text-gray-900">
-                  {review.name}
-                </h3>
-                <p className="text-sm text-gray-500">
-                  {review.email}
+                <h3 className="font-semibold">{r.name}</h3>
+                <p className="text-sm text-gray-500 break-all">
+                  {r.email}
                 </p>
               </div>
+              <span className="px-3 py-1 text-xs bg-yellow-100 text-yellow-700 rounded-full h-fit">
+                ⭐ {r.rating}.0
+              </span>
             </div>
 
-            <div className="flex justify-between items-center mt-4">
-              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
-                ⭐ {review.rating}.0
-              </span>
-
+            <div className="flex justify-end mt-4">
               <button
-                onClick={() => handleDelete(review.id)}
-                className="p-3 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition"
+                onClick={() => handleDelete(r.id)}
+                className="p-2 cursor-pointer bg-red-50 text-red-600 rounded-lg"
               >
-                <TrashIcon className="w-5 h-5" />
+                <TrashIcon className="w-4 h-4" />
               </button>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Load More */}
-      {visibleCount < reviews.length && (
-        <div className="mt-10 flex justify-center">
-          <button
-            onClick={() => setVisibleCount((p) => p + 10)}
-            className="px-10 py-3 rounded-2xl bg-blue-600 text-white font-semibold text-sm shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all cursor-pointer"
-          >
-            Load More Reviews
-          </button>
+      {/* ================= PAGINATION ================= */}
+      {totalPages > 1 && (
+        <div className="mt-8 flex justify-center gap-2">
+          {Array.from({ length: totalPages }).map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrentPage(i + 1)}
+              className={`px-4 cursor-pointer py-2 rounded-lg font-semibold ${
+                currentPage === i + 1
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 hover:bg-gray-200"
+              }`}
+            >
+              {i + 1}
+            </button>
+          ))}
         </div>
       )}
     </div>

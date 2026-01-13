@@ -69,7 +69,7 @@ const Contacts = () => {
             setSearch(e.target.value);
             setPage(1);
           }}
-          className="w-full md:w-72 px-4 py-3 rounded-xl border border-gray-200 shadow-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+          className="w-full md:w-72 px-4 py-3 rounded-xl bg-gray-100 focus:ring-2 focus:ring-indigo-500 outline-none"
         />
       </div>
 

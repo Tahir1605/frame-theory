@@ -32,7 +32,7 @@ const Sidebar = ({ open, setOpen }) => {
         className={`
           fixed top-0 left-0 z-40
           h-screen w-64
-          bg-white/95 backdrop-blur-xl shadow-2xl
+          bg-white/95 backdrop-blur-xl
           transition-transform duration-300
           ${open ? "translate-x-0" : "-translate-x-64"}
           md:translate-x-0

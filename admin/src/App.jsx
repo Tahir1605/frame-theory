@@ -16,6 +16,7 @@ import AddVideo from "./components/AddVideo";
 import VideoList from "./components/VideoList";
 import EditPhoto from "./components/EditPhoto";
 import EditPhotoList from "./components/EditPhotoList";
+import Login from "./components/Login";
 
 const App = () => {
   const router = createBrowserRouter([
@@ -125,6 +126,12 @@ const App = () => {
           <Profile />
         </Layout>
       ),
+    },
+    {
+      path:"/login",
+      element:(
+        <Login/>
+      )
     },
     {
       path: "/logout",

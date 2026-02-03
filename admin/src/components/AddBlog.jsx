@@ -10,12 +10,13 @@ const AddBlog = () => {
   const quillRef = useRef(null);
 
   const [images, setImages] = useState([null, null, null, null]);
+  const [progress, setProgress] = useState([0, 0, 0, 0]);
+
   const [title, setTitle] = useState("");
-  const [subTitles, setSubTitles] = useState([""]); // Array for multiple sub-titles
+  const [subTitles, setSubTitles] = useState([""]);
   const [isPublished, setIsPublished] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
 
-  /* ---------------- COMMON INPUT STYLE ---------------- */
   const inputStyle =
     "w-full mt-1 p-3 border-2 border-blue-600 rounded-lg outline-none " +
     "focus:ring-2 focus:ring-blue-500 transition";
@@ -30,17 +31,41 @@ const AddBlog = () => {
     }
   }, []);
 
-  /* ---------------- IMAGE HANDLERS ---------------- */
+  /* ---------------- IMAGE UPLOAD (WITH PROGRESS) ---------------- */
   const handleImageChange = (index, file) => {
-    const updated = [...images];
-    updated[index] = file;
-    setImages(updated);
+    if (!file) return;
+
+    const updatedImages = [...images];
+    updatedImages[index] = file;
+    setImages(updatedImages);
+
+    const updatedProgress = [...progress];
+    updatedProgress[index] = 0;
+    setProgress(updatedProgress);
+
+    let value = 0;
+    const interval = setInterval(() => {
+      value += 10;
+      setProgress((prev) => {
+        const copy = [...prev];
+        copy[index] = value;
+        return copy;
+      });
+
+      if (value >= 100) {
+        clearInterval(interval);
+      }
+    }, 200);
   };
 
   const removeImage = (index) => {
-    const updated = [...images];
-    updated[index] = null;
-    setImages(updated);
+    const updatedImages = [...images];
+    updatedImages[index] = null;
+    setImages(updatedImages);
+
+    const updatedProgress = [...progress];
+    updatedProgress[index] = 0;
+    setProgress(updatedProgress);
   };
 
   /* ---------------- SUB-TITLE HANDLERS ---------------- */
@@ -50,14 +75,11 @@ const AddBlog = () => {
     setSubTitles(updated);
   };
 
-  const addSubTitle = () => {
-    setSubTitles([...subTitles, ""]);
-  };
+  const addSubTitle = () => setSubTitles([...subTitles, ""]);
 
   const removeSubTitle = (index) => {
-    if (subTitles.length === 1) return; // At least one sub-title
-    const updated = subTitles.filter((_, i) => i !== index);
-    setSubTitles(updated);
+    if (subTitles.length === 1) return;
+    setSubTitles(subTitles.filter((_, i) => i !== index));
   };
 
   /* ---------------- SUBMIT ---------------- */
@@ -73,7 +95,7 @@ const AddBlog = () => {
 
       const blog = {
         title,
-        subTitles: subTitles.filter((st) => st.trim() !== ""), // Only non-empty sub-titles
+        subTitles: subTitles.filter((st) => st.trim() !== ""),
         description: quillRef.current.root.innerHTML,
         isPublished,
       };
@@ -90,6 +112,7 @@ const AddBlog = () => {
       if (data.success) {
         toast.success(data.message);
         setImages([null, null, null, null]);
+        setProgress([0, 0, 0, 0]);
         setTitle("");
         setSubTitles([""]);
         setIsPublished(false);
@@ -122,7 +145,7 @@ const AddBlog = () => {
             {images.map((img, index) => (
               <div
                 key={index}
-                className="relative h-28 rounded-xl border-2 border-dashed border-blue-600
+                className="relative h-36 rounded-xl border-2 border-dashed border-blue-600
                            hover:bg-blue-50 transition flex items-center justify-center
                            overflow-hidden bg-gray-100"
               >
@@ -130,16 +153,33 @@ const AddBlog = () => {
                   <>
                     <img
                       src={URL.createObjectURL(img)}
-                      className="h-full w-full object-cover"
+                      className="absolute inset-0 h-full w-full object-cover"
                       alt="Preview"
                     />
+
+                    {/* Remove */}
                     <button
                       type="button"
                       onClick={() => removeImage(index)}
-                      className="absolute top-1 right-1 bg-black/60 text-white p-1 rounded-full"
+                      className="absolute cursor-pointer top-1 right-1 bg-black/70 text-white p-1 rounded-full z-10"
                     >
                       <X size={14} />
                     </button>
+
+                    {/* Progress bar */}
+                    {progress[index] < 100 && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-white/80 px-2 py-1">
+                        <div className="w-full h-1.5 bg-gray-300 rounded-full">
+                          <div
+                            className="h-1.5 bg-blue-600 rounded-full transition-all"
+                            style={{ width: `${progress[index]}%` }}
+                          />
+                        </div>
+                        <p className="text-[10px] text-center text-gray-600 mt-0.5">
+                          Uploading {progress[index]}%
+                        </p>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <label className="cursor-pointer text-xs text-blue-600 flex flex-col items-center">
@@ -197,6 +237,7 @@ const AddBlog = () => {
               </div>
             ))}
           </div>
+
           <button
             type="button"
             onClick={addSubTitle}
@@ -210,21 +251,9 @@ const AddBlog = () => {
         <div>
           <label className="text-sm font-medium">Blog Description</label>
 
-          <div
-            className="relative mt-2 border-2 border-blue-600 rounded-xl
-                       focus-within:ring-2 focus-within:ring-blue-500
-                       transition bg-white"
-          >
+          <div className="relative mt-2 border-2 border-blue-600 rounded-xl
+                          focus-within:ring-2 focus-within:ring-blue-500">
             <div ref={editorRef} className="min-h-[300px] pb-16" />
-
-            <button
-              type="button"
-              className="absolute bottom-3 right-3 text-xs cursor-pointer
-                         px-4 py-2 rounded-lg bg-black/80 text-white
-                         hover:bg-black transition"
-            >
-              Generate with AI
-            </button>
           </div>
         </div>
 
@@ -232,7 +261,7 @@ const AddBlog = () => {
         <label className="flex items-center gap-3 text-sm">
           <input
             type="checkbox"
-            className="scale-125 cursor-pointer accent-blue-600"
+            className="cursor-pointer scale-125 accent-blue-600"
             checked={isPublished}
             onChange={(e) => setIsPublished(e.target.checked)}
           />
@@ -242,7 +271,7 @@ const AddBlog = () => {
         {/* ---------------- SUBMIT ---------------- */}
         <button
           disabled={isAdding}
-          className="w-full sm:w-48 h-12 cursor-pointer bg-blue-600 hover:bg-blue-700
+          className="w-full cursor-pointer sm:w-48 h-12 bg-blue-600 hover:bg-blue-700
                      text-white rounded-xl font-medium transition"
         >
           {isAdding ? "Adding..." : "Add Blog"}

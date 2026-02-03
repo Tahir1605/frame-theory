@@ -21,13 +21,40 @@ const Review = () => {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadDone, setUploadDone] = useState(false);
+
   const [form, setForm] = useState({
     name: "",
     email: "",
     rating: 0,
     comment: "",
     photo: null,
+    photoPreview: null,
   });
+
+  /* ================= IMAGE UPLOAD (WITH %) ================= */
+  const handlePhotoUpload = (file) => {
+    if (!file) return;
+
+    setUploadProgress(0);
+    setUploadDone(false);
+
+    const previewURL = URL.createObjectURL(file);
+    setForm({ ...form, photo: file, photoPreview: previewURL });
+
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 8;
+      setUploadProgress(progress);
+
+      if (progress >= 100) {
+        clearInterval(interval);
+        setUploadProgress(100);
+        setUploadDone(true);
+      }
+    }, 120);
+  };
 
   /* ================= SEARCH ================= */
   const filteredReviews = reviews.filter(
@@ -76,13 +103,16 @@ const Review = () => {
       rating: 0,
       comment: "",
       photo: null,
+      photoPreview: null,
     });
+    setUploadProgress(0);
+    setUploadDone(false);
   };
 
   return (
-    <div className="mt-14 px-3 sm:px-6 max-w-7xl mx-auto overflow-x-hidden">
+    <div className="mt-14 px-3 sm:px-6 max-w-7xl mx-auto">
 
-      {/* ================= ADD REVIEW FORM ================= */}
+      {/* ================= ADD REVIEW ================= */}
       <div className="mb-12 bg-white rounded-2xl shadow-lg p-5 sm:p-7">
         <h3 className="text-xl sm:text-2xl font-bold mb-6">
           Add New Review
@@ -108,18 +138,59 @@ const Review = () => {
             className="px-4 py-2.5 rounded-xl bg-gray-100 outline-none focus:ring-2 focus:ring-blue-500"
           />
 
-          <label className="flex items-center gap-3 px-4 py-2.5 rounded-xl border-dashed border-blue-600 bg-gray-100 cursor-pointer md:col-span-1">
-            <PhotoIcon className="w-5 h-5 text-gray-500" />
-            <span className="text-sm">Upload Customer Photo</span>
-            <input
-              type="file"
-              hidden
-              onChange={(e) =>
-                setForm({ ...form, photo: e.target.files[0] })
-              }
-            />
-          </label>
+          {/* ===== SMALL IMAGE UPLOAD BOX ===== */}
+          <div>
+            <label
+              className={`relative flex items-center justify-center
+              w-[120px] h-[120px] rounded-xl cursor-pointer overflow-hidden
+              ${
+                uploadDone
+                  ? "border-4 border-blue-600"
+                  : "border-2 border-dashed border-blue-600"
+              }`}
+            >
+              {form.photoPreview ? (
+                <img
+                  src={form.photoPreview}
+                  alt="Preview"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="cursor-pointer flex flex-col items-center text-blue-600">
+                  <PhotoIcon className="w-6 h-6" />
+                  <span className="text-[11px] mt-1 font-medium">
+                    Upload
+                  </span>
+                </div>
+              )}
 
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={(e) => handlePhotoUpload(e.target.files[0])}
+              />
+
+              {/* Percentage */}
+              {uploadProgress > 0 && uploadProgress < 100 && (
+                <div className="absolute inset-0 bg-white/70 flex items-center justify-center text-sm font-semibold text-blue-600">
+                  {uploadProgress}%
+                </div>
+              )}
+
+              {/* Progress bar */}
+              {uploadProgress > 0 && uploadProgress < 100 && (
+                <div className="absolute bottom-0 left-0 w-full h-1 bg-gray-200">
+                  <div
+                    className="h-full bg-blue-600 transition-all"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+              )}
+            </label>
+          </div>
+
+          {/* ===== RATING ===== */}
           <div className="flex gap-2 items-center">
             {[1, 2, 3, 4, 5].map((star) => (
               <button
@@ -142,38 +213,15 @@ const Review = () => {
             className="md:col-span-2 px-4 py-2.5 rounded-xl bg-gray-100 outline-none focus:ring-2 focus:ring-blue-500"
           />
 
-          <button className="md:col-span-2 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">
+          <button className="cursor-pointer md:col-span-2 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">
             Submit Review
           </button>
         </form>
       </div>
 
-      {/* ================= HEADER + SEARCH ================= */}
-      <div className="flex flex-col sm:flex-row justify-between gap-4 mb-8">
-        <div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold">
-            Customer Reviews
-          </h2>
-          <p className="text-gray-500">
-            Feedback shared by customers
-          </p>
-        </div>
-
-        <input
-          type="text"
-          placeholder="Search by name or email..."
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setCurrentPage(1);
-          }}
-          className="w-full sm:w-64 px-4 py-2.5 rounded-xl bg-gray-100 outline-none focus:ring-2 focus:ring-indigo-500"
-        />
-      </div>
-
-      {/* ================= DESKTOP TABLE ================= */}
+      {/* ================= REVIEWS TABLE ================= */}
       <div className="hidden md:block bg-white rounded-2xl shadow-lg overflow-hidden">
-        <table className="w-full table-fixed">
+        <table className="w-full">
           <thead className="bg-gray-50 text-sm text-gray-600">
             <tr>
               <th className="px-4 py-4 text-left">Customer</th>
@@ -182,16 +230,11 @@ const Review = () => {
               <th className="px-4 py-4 w-[90px] text-center">Action</th>
             </tr>
           </thead>
-
           <tbody>
             {paginatedReviews.map((r, i) => (
               <tr key={r.id} className={i % 2 ? "bg-gray-50" : ""}>
-                <td className="px-4 py-3 font-semibold truncate">
-                  {r.name}
-                </td>
-                <td className="px-4 py-3 text-gray-600 truncate">
-                  {r.email}
-                </td>
+                <td className="px-4 py-3 font-semibold">{r.name}</td>
+                <td className="px-4 py-3 text-gray-600">{r.email}</td>
                 <td className="px-4 py-3">
                   <span className="px-3 py-1 text-xs bg-yellow-100 text-yellow-700 rounded-full">
                     ⭐ {r.rating}.0
@@ -200,7 +243,7 @@ const Review = () => {
                 <td className="px-4 py-3 text-center">
                   <button
                     onClick={() => handleDelete(r.id)}
-                    className="p-2 cursor-pointer rounded-lg bg-red-50 text-red-600 hover:bg-red-100"
+                    className="p-2 cursor-pointer bg-red-50 text-red-600 rounded-lg hover:bg-red-100"
                   >
                     <TrashIcon className="w-4 h-4" />
                   </button>
@@ -210,53 +253,6 @@ const Review = () => {
           </tbody>
         </table>
       </div>
-
-      {/* ================= MOBILE CARDS ================= */}
-      <div className="md:hidden space-y-4">
-        {paginatedReviews.map((r) => (
-          <div key={r.id} className="bg-white p-4 rounded-xl shadow">
-            <div className="flex justify-between gap-2">
-              <div>
-                <h3 className="font-semibold">{r.name}</h3>
-                <p className="text-sm text-gray-500 break-all">
-                  {r.email}
-                </p>
-              </div>
-              <span className="px-3 py-1 text-xs bg-yellow-100 text-yellow-700 rounded-full h-fit">
-                ⭐ {r.rating}.0
-              </span>
-            </div>
-
-            <div className="flex justify-end mt-4">
-              <button
-                onClick={() => handleDelete(r.id)}
-                className="p-2 cursor-pointer bg-red-50 text-red-600 rounded-lg"
-              >
-                <TrashIcon className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* ================= PAGINATION ================= */}
-      {totalPages > 1 && (
-        <div className="mt-8 flex justify-center gap-2">
-          {Array.from({ length: totalPages }).map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrentPage(i + 1)}
-              className={`px-4 cursor-pointer py-2 rounded-lg font-semibold ${
-                currentPage === i + 1
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 hover:bg-gray-200"
-              }`}
-            >
-              {i + 1}
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   );
 };

@@ -3,9 +3,9 @@ import {addAdmin,adminList,updateAdmin,deleteAdmin} from '../controllers/adminCo
 import upload from '../middleware/multer.js';
 
 const adminRouter = express.Router();
-adminRouter.post('/add-admin',addAdmin);
+adminRouter.post('/add-admin', upload.single("image"),addAdmin);
 adminRouter.get('/admin-list',adminList);
-adminRouter.post('/update-admin',updateAdmin);
-adminRouter.post('/delete-admin',deleteAdmin);
+adminRouter.put('/update-admin',updateAdmin);
+adminRouter.delete('/delete-admin',deleteAdmin);
 
 export default adminRouter

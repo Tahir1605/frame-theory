@@ -1,65 +1,94 @@
 import { useState } from "react";
-import { CameraIcon } from "@heroicons/react/24/outline";
 import { useForm } from "react-hook-form";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { CameraIcon } from "@heroicons/react/24/outline";
+import { toast } from "react-toastify";
+import axios from "axios";
 import AdminList from "./AdminList";
 
 const Admin = () => {
   const [image, setImage] = useState(null);
-  const [progress, setProgress] = useState(0);
-  const [uploading, setUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadDone, setUploadDone] = useState(false);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm({ mode: "onSubmit" });
+  } = useForm();
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
+  /* ================= IMAGE SELECT + PROGRESS ================= */
+  const handleImageSelect = (file) => {
     if (!file) return;
 
-    setUploading(true);
-    setProgress(0);
-    setImage(URL.createObjectURL(file));
+    setImage(file);
+    setImagePreview(URL.createObjectURL(file));
+    setUploadProgress(0);
+    setUploadDone(false);
 
-    let value = 0;
+    let progress = 0;
     const interval = setInterval(() => {
-      value += 10;
-      setProgress(value);
-      if (value >= 100) {
+      progress += 8;
+      setUploadProgress(progress);
+
+      if (progress >= 100) {
         clearInterval(interval);
-        setUploading(false);
+        setUploadProgress(100);
+        setUploadDone(true);
       }
-    }, 200);
+    }, 120);
   };
 
-  const onSubmit = (data) => {
+  /* ================= SUBMIT ================= */
+  const onSubmitHandler = async (data) => {
     if (!image) {
-      toast.error("Please upload admin photo");
+      toast.error("Profile image is required");
       return;
     }
 
-    toast.success("Admin created successfully 🎉");
-    reset();
-    setImage(null);
-    setProgress(0);
+    try {
+      const formData = new FormData();
+      formData.append("name", data.name);
+      formData.append("email", data.email);
+      formData.append("password", data.password);
+      formData.append("image", image);
+
+      const response = await axios.post(
+        "http://localhost:3000/api/admin/add-admin",
+        formData
+      );
+
+      if (response.data.success) {
+        toast.success(response.data.message);
+        reset();
+        setImage(null);
+        setImagePreview(null);
+        setUploadProgress(0);
+        setUploadDone(false);
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error.message);
+    }
   };
 
+  /* ================= SHOW VALIDATION ERRORS IN TOAST ================= */
   const onError = (errors) => {
-    const firstError = Object.values(errors)[0];
-    if (firstError?.message) toast.error(firstError.message);
+    Object.values(errors).forEach((err) => {
+      toast.error(err.message);
+    });
   };
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden px-3 sm:px-6 py-6 space-y-16">
-      <ToastContainer position="top-right" autoClose={3000} />
 
       {/* ================= ADD ADMIN ================= */}
       <div className="flex justify-center">
         <div className="w-full lg:max-w-4xl bg-white/90 backdrop-blur-xl shadow-2xl rounded-3xl border border-gray-100 p-6 sm:p-8">
+
           <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-800 mb-1">
             Add New Admin
           </h2>
@@ -68,20 +97,25 @@ const Admin = () => {
           </p>
 
           <form
-            onSubmit={handleSubmit(onSubmit, onError)}
+            onSubmit={handleSubmit(onSubmitHandler, onError)}
             className="grid grid-cols-1 lg:grid-cols-2 gap-6"
           >
-            {/* Profile Upload */}
-            <div className="lg:col-span-2 flex flex-col items-center">
+            {/* ================= PROFILE UPLOAD ================= */}
+            <div className="lg:col-span-2 flex flex-col items-center gap-3">
               <div className="relative">
-                {image ? (
+                {imagePreview ? (
                   <img
-                    src={image}
+                    src={imagePreview}
                     alt="admin"
-                    className="w-28 h-28 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-blue-500 shadow-lg"
+                    className={`w-28 h-28 sm:w-32 sm:h-32 rounded-full object-cover shadow-lg
+                    ${
+                      uploadDone
+                        ? "border-4 border-blue-600"
+                        : "border-2 border-dashed border-blue-500"
+                    }`}
                   />
                 ) : (
-                  <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 border-dashed border-blue-400 flex flex-col items-center justify-center text-blue-500 bg-blue-50">
+                  <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border-2 border-dashed border-blue-400 flex flex-col items-center justify-center text-blue-500 bg-blue-50">
                     <CameraIcon className="w-8 h-8 mb-1" />
                     <span className="text-xs font-semibold">Upload Photo</span>
                   </div>
@@ -98,27 +132,27 @@ const Admin = () => {
                   id="photo"
                   type="file"
                   accept="image/*"
-                  className="hidden"
-                  onChange={handleImageChange}
+                  hidden
+                  onChange={(e) => handleImageSelect(e.target.files[0])}
                 />
               </div>
 
-              {uploading && (
-                <div className="w-40 mt-4">
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+              {uploadProgress > 0 && uploadProgress < 100 && (
+                <div className="w-40">
+                  <div className="text-xs font-semibold text-blue-600 text-center mb-1">
+                    Uploading {uploadProgress}%
+                  </div>
+                  <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
                     <div
-                      className="bg-blue-600 h-2 transition-all"
-                      style={{ width: `${progress}%` }}
+                      className="h-full bg-blue-600"
+                      style={{ width: `${uploadProgress}%` }}
                     />
                   </div>
-                  <p className="text-xs text-gray-500 mt-1 text-center">
-                    Uploading {progress}%
-                  </p>
                 </div>
               )}
             </div>
 
-            {/* Name */}
+            {/* ================= NAME ================= */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
                 Full Name
@@ -126,18 +160,20 @@ const Admin = () => {
               <input
                 {...register("name", {
                   required: "Name is required",
-                  minLength: { value: 3, message: "Minimum 3 characters" },
-                  maxLength: { value: 20, message: "Maximum 20 characters" },
+                  minLength: {
+                    value: 3,
+                    message: "Name must be at least 3 characters long",
+                  },
                   pattern: {
-                    value: /^[A-Za-z\s]+$/,
-                    message: "Only letters allowed",
+                    value: /^[A-Za-z ]+$/,
+                    message: "Name must not contain numbers or special characters",
                   },
                 })}
                 className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-200 focus:border-blue-500 outline-none"
               />
             </div>
 
-            {/* Email */}
+            {/* ================= EMAIL ================= */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
                 Email Address
@@ -147,14 +183,14 @@ const Admin = () => {
                   required: "Email is required",
                   pattern: {
                     value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                    message: "Invalid email",
+                    message: "Enter a valid email address",
                   },
                 })}
                 className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-200 focus:border-blue-500 outline-none"
               />
             </div>
 
-            {/* Password */}
+            {/* ================= PASSWORD ================= */}
             <div className="lg:col-span-2">
               <label className="block text-sm font-semibold text-gray-700 mb-1">
                 Password
@@ -163,13 +199,22 @@ const Admin = () => {
                 type="password"
                 {...register("password", {
                   required: "Password is required",
-                  minLength: { value: 6, message: "Min 6 characters" },
+                  minLength: {
+                    value: 6,
+                    message: "Password must be at least 6 characters long",
+                  },
+                  pattern: {
+                    value:
+                      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/,
+                    message:
+                      "Password must contain uppercase, lowercase, number and special character",
+                  },
                 })}
                 className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-200 focus:border-blue-500 outline-none"
               />
             </div>
 
-            {/* Submit */}
+            {/* ================= SUBMIT ================= */}
             <div className="lg:col-span-2">
               <button
                 type="submit"

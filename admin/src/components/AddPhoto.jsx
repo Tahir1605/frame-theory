@@ -54,7 +54,7 @@ const AddPhoto = () => {
                 <img
                   src={image}
                   alt="preview"
-                  className="w-36 h-36 rounded-2xl object-cover border-4 border-blue-500 shadow-lg"
+                  className="w-36 h-36 rounded-full object-cover border-4 border-blue-500 shadow-lg"
                 />
               ) : (
                 <div className="w-36 h-36 rounded-full border-4 border-dashed border-blue-400 flex flex-col items-center justify-center bg-blue-50 text-blue-500">

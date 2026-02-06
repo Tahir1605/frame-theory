@@ -17,6 +17,8 @@ import VideoList from "./components/VideoList";
 import EditPhoto from "./components/EditPhoto";
 import EditPhotoList from "./components/EditPhotoList";
 import Login from "./components/Login";
+import {ToastContainer} from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 const App = () => {
   const router = createBrowserRouter([
@@ -143,7 +145,23 @@ const App = () => {
     },
   ]);
 
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      {/* Global Toast Container */}
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        draggable
+        theme="light"
+      />
+
+      <RouterProvider router={router} />
+    </>
+  );
 };
 
 export default App;

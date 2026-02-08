@@ -10,14 +10,14 @@ const imageAdd = async (req,res) => {
        /* ================= VALIDATIONS ================= */
    
        if (!name || !category) {
-         return res.json({
+        return res.json({
            success: false,
            message: "Name and category is required",
          });
        }
    
        if (!imageFile) {
-         return res.json({
+        return res.json({
            success: false,
            message: "Image is required",
          });
@@ -25,7 +25,7 @@ const imageAdd = async (req,res) => {
    
        // Name validation
        if (name.length < 3) {
-         return res.json({
+      return res.json({
            success: false,
            message: "Name must be at least 3 characters long",
          });
@@ -56,6 +56,7 @@ const imageAdd = async (req,res) => {
          name,
          category,
          image: imageUrl,
+         fileId: uploadResult.fileId,
        }
    
        const image = new imageModel(imageData)
@@ -64,7 +65,7 @@ const imageAdd = async (req,res) => {
        // Remove local file safely
        fs.unlink(imageFile.path, () => {});
    
-       return res.json({
+       res.json({
          success: true,
          message: "Image added successfully",
    
@@ -72,27 +73,66 @@ const imageAdd = async (req,res) => {
    
      } catch (error) {
        console.error(error);
-       return res.json({
+      res.json({
          success: false,
          message: "Internal server error",
        });
      }
 }
 
-const imageList = async (req,res) => {
-    try {
-        
-    } catch (error) {
-        
-    }
-}
+const imageList = async (req, res) => {
+  try {
+    const images = await imageModel.find().sort({ createdAt: -1 }); //it fetches recent most
+    // const images = await imageModel.find({});
 
-const imageDelete = async (req,res) => {
-    try {
-        
-    } catch (error) {
-        
+    res.json({success: true, data:images,});
+
+  } catch (error) {
+    console.error(error);
+    res.json({
+      success: false,
+      message: "Failed to fetch images",
+    });
+  }
+};
+
+
+const imageDelete = async (req, res) => {
+  try {
+    const { id } = req.body;
+
+    if (!id) {
+    return res.json({
+        success: false,
+        message: "Image ID is required",
+      });
     }
-}
+
+    const imageData = await imageModel.findById(id);
+
+    if (!imageData) {
+    return  res.json({
+        success: false,
+        message: "Image not found",
+      });
+    }
+
+    await imagekit.deleteFile(imageData.fileId);
+
+    await imageModel.findByIdAndDelete(id);
+
+    res.json({
+      success: true,
+      message: "Image deleted successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    res.json({
+      success: false,
+      message: "Failed to delete image",
+    });
+  }
+};
+
 
 export {imageAdd,imageList,imageDelete};

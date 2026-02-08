@@ -19,6 +19,10 @@ const adminSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    fileId: {
+      type: String,
+      required: true,
+    },
 });
 
 const adminModel = mongoose.models.admin || mongoose.model("admin", adminSchema);

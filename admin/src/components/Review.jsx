@@ -1,10 +1,11 @@
 import { useState } from "react";
 import {
   TrashIcon,
-  StarIcon,
   PhotoIcon,
+  CheckCircleIcon,
+  XCircleIcon,
 } from "@heroicons/react/24/outline";
-import { StarIcon as StarSolid } from "@heroicons/react/24/solid";
+import { StarIcon as StarSolid, StarIcon } from "@heroicons/react/24/solid";
 
 /* ================= DEMO DATA ================= */
 const allReviews = Array.from({ length: 20 }, (_, i) => ({
@@ -12,6 +13,7 @@ const allReviews = Array.from({ length: 20 }, (_, i) => ({
   name: `Customer ${i + 1}`,
   email: `customer${i + 1}@gmail.com`,
   rating: Math.floor(Math.random() * 2) + 4,
+  published: Math.random() > 0.5, // ✅ IMPORTANT
 }));
 
 const ITEMS_PER_PAGE = 5;
@@ -53,6 +55,15 @@ const Review = () => {
     }, 120);
   };
 
+  /* ================= TOGGLE PUBLISH ================= */
+  const togglePublish = (id) => {
+    setReviews((prev) =>
+      prev.map((r) =>
+        r.id === id ? { ...r, published: !r.published } : r
+      )
+    );
+  };
+
   /* ================= PAGINATION ================= */
   const totalPages = Math.ceil(reviews.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -64,6 +75,7 @@ const Review = () => {
   /* ================= SUBMIT ================= */
   const handleSubmit = (e) => {
     e.preventDefault();
+
     if (!form.name || !form.email || !form.rating) {
       alert("Fill all required fields");
       return;
@@ -75,6 +87,7 @@ const Review = () => {
         name: form.name,
         email: form.email,
         rating: form.rating,
+        published: false, // ✅ default unpublished
       },
       ...reviews,
     ]);
@@ -103,7 +116,7 @@ const Review = () => {
   return (
     <div className="mt-14 px-3 sm:px-6 max-w-7xl mx-auto">
 
-      {/* ================= ADD REVIEW FORM ================= */}
+      {/* ================= ADD REVIEW ================= */}
       <div className="mb-12 bg-white rounded-2xl shadow-lg p-5 sm:p-7">
         <h3 className="text-xl sm:text-2xl font-bold mb-6">
           Add New Review
@@ -129,7 +142,7 @@ const Review = () => {
             className="px-4 py-2.5 rounded-xl bg-gray-100 focus:ring-2 focus:ring-blue-500 outline-none"
           />
 
-          {/* IMAGE UPLOAD */}
+          {/* IMAGE */}
           <label
             className={`relative w-[120px] h-[120px] flex items-center justify-center rounded-xl cursor-pointer overflow-hidden
             ${
@@ -159,17 +172,9 @@ const Review = () => {
             />
 
             {uploadProgress > 0 && uploadProgress < 100 && (
-              <>
-                <div className="absolute inset-0 bg-white/70 flex items-center justify-center text-sm font-semibold text-blue-600">
-                  {uploadProgress}%
-                </div>
-                <div className="absolute bottom-0 left-0 w-full h-1 bg-gray-200">
-                  <div
-                    className="h-full bg-blue-600"
-                    style={{ width: `${uploadProgress}%` }}
-                  />
-                </div>
-              </>
+              <div className="absolute inset-0 bg-white/70 flex items-center justify-center font-semibold text-blue-600">
+                {uploadProgress}%
+              </div>
             )}
           </label>
 
@@ -190,37 +195,72 @@ const Review = () => {
             ))}
           </div>
 
-          <button className="md:col-span-2 cursor-pointer py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700">
+          <button className="md:col-span-2 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700">
             Submit Review
           </button>
         </form>
       </div>
 
-      {/* ================= LIST (DESKTOP + MOBILE) ================= */}
-      {/* Desktop Table */}
-      <div className="bg-white rounded-2xl shadow-lg overflow-hidden hidden md:block">
-        <table className="w-full">
-          <thead className="bg-gray-50 text-sm text-gray-600">
+      {/* ================= DESKTOP TABLE ================= */}
+      <div className="hidden md:block">
+        <table className="w-full table-fixed bg-white rounded-xl shadow">
+          <thead className="bg-gray-50 text-sm">
             <tr>
-              <th className="px-4 py-4 text-left">Customer</th>
-              <th className="px-4 py-4 text-left">Email</th>
-              <th className="px-4 py-4">Rating</th>
-              <th className="px-4 py-4 text-center">Action</th>
+              <th className="w-10 px-2 py-3">SL</th>
+              <th className="px-3 py-3 text-left">Name</th>
+              <th className="px-3 py-3 hidden lg:table-cell">Email</th>
+              <th className="px-3 py-3 text-center">Status</th>
+              <th className="w-20 px-2 py-3 text-center">Action</th>
             </tr>
           </thead>
-          <tbody>
-            {paginatedReviews.map((r, i) => (
-              <tr key={r.id} className={i % 2 ? "bg-gray-50" : ""}>
-                <td className="px-4 py-3 font-semibold">{r.name}</td>
-                <td className="px-4 py-3 text-gray-600 break-all">{r.email}</td>
-                <td className="px-4 py-3">⭐ {r.rating}.0</td>
-                <td className="px-4 py-3 text-center">
-                  <button
-                    onClick={() => handleDelete(r.id)}
-                    className="p-2 cursor-pointer bg-red-50 text-red-600 rounded-lg hover:bg-red-100"
+
+          <tbody className="text-sm">
+            {paginatedReviews.map((review, i) => (
+              <tr key={review.id} className="hover:bg-gray-100">
+                <td className="px-2 py-2">
+                  {(currentPage - 1) * ITEMS_PER_PAGE + i + 1}
+                </td>
+
+                <td className="px-3 py-2 font-medium truncate">
+                  {review.name}
+                </td>
+
+                <td className="px-3 py-2 hidden lg:table-cell text-gray-600">
+                  {review.email}
+                </td>
+
+                <td className="px-3 py-2 text-center">
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                      review.published
+                        ? "bg-green-100 text-green-700"
+                        : "bg-red-100 text-red-700"
+                    }`}
                   >
-                    <TrashIcon className="w-4 h-4" />
-                  </button>
+                    {review.published ? "Published" : "Unpublished"}
+                  </span>
+                </td>
+
+                <td className="px-2 py-2">
+                  <div className="flex justify-center gap-1">
+                    <button
+                      onClick={() => togglePublish(review.id)}
+                      className="p-1.5 rounded-md bg-blue-50 text-blue-600"
+                    >
+                      {review.published ? (
+                        <XCircleIcon className="w-5 h-5" />
+                      ) : (
+                        <CheckCircleIcon className="w-5 h-5" />
+                      )}
+                    </button>
+
+                    <button
+                      onClick={() => handleDelete(review.id)}
+                      className="p-1.5 rounded-md bg-red-50 text-red-600"
+                    >
+                      <TrashIcon className="w-5 h-5" />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -228,56 +268,66 @@ const Review = () => {
         </table>
       </div>
 
-      {/* Mobile Cards */}
+      {/* ================= MOBILE ================= */}
       <div className="md:hidden space-y-4">
-        {paginatedReviews.map((r) => (
-          <div
-            key={r.id}
-            className="bg-white rounded-xl shadow p-4 flex justify-between gap-3"
-          >
-            <div>
-              <h4 className="font-semibold">{r.name}</h4>
-              <p className="text-sm text-gray-500 break-all">{r.email}</p>
-              <div className="flex mt-2">
-                {[1, 2, 3, 4, 5].map((star) =>
-                  r.rating >= star ? (
-                    <StarSolid key={star} className="w-4 h-4 text-yellow-400" />
-                  ) : (
-                    <StarIcon key={star} className="w-4 h-4 text-gray-300" />
-                  )
-                )}
-              </div>
+        {paginatedReviews.map((review, i) => (
+          <div key={review.id} className="bg-white rounded-xl p-4 shadow">
+            <div className="flex justify-between mb-1">
+              <span className="text-xs text-gray-500">
+                #{(currentPage - 1) * ITEMS_PER_PAGE + i + 1}
+              </span>
+
+              <span
+                className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                  review.published
+                    ? "bg-green-100 text-green-700"
+                    : "bg-red-100 text-red-700"
+                }`}
+              >
+                {review.published ? "Published" : "Unpublished"}
+              </span>
             </div>
 
-            <button
-              onClick={() => handleDelete(r.id)}
-              className="p-2 cursor-pointer bg-red-50 text-red-600 rounded-lg h-fit"
-            >
-              <TrashIcon className="w-4 h-4" />
-            </button>
+            <h3 className="font-semibold text-sm truncate">
+              {review.name}
+            </h3>
+            <p className="text-xs text-gray-500">{review.email}</p>
+
+            <div className="flex gap-2 mt-3">
+              <button
+                onClick={() => togglePublish(review.id)}
+                className="flex-1 py-2 rounded-lg bg-blue-50 text-blue-600 text-sm font-semibold"
+              >
+                {review.published ? "Unpublish" : "Publish"}
+              </button>
+
+              <button
+                onClick={() => handleDelete(review.id)}
+                className="flex-1 py-2 rounded-lg bg-red-50 text-red-600 text-sm font-semibold"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         ))}
       </div>
 
       {/* ================= PAGINATION ================= */}
       {totalPages > 1 && (
-        <div className="mt-8 flex justify-center">
-          <div className="flex flex-wrap gap-2">
-            {Array.from({ length: totalPages }).map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrentPage(i + 1)}
-                className={`min-w-[38px] h-[38px] cursor-pointer rounded-lg font-semibold
-                ${
-                  currentPage === i + 1
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 hover:bg-gray-200"
-                }`}
-              >
-                {i + 1}
-              </button>
-            ))}
-          </div>
+        <div className="mt-8 flex justify-center gap-2">
+          {Array.from({ length: totalPages }).map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrentPage(i + 1)}
+              className={`w-9 h-9 rounded-lg font-semibold ${
+                currentPage === i + 1
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100"
+              }`}
+            >
+              {i + 1}
+            </button>
+          ))}
         </div>
       )}
     </div>

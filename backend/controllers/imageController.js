@@ -65,7 +65,7 @@ const imageAdd = async (req,res) => {
        // Remove local file safely
        fs.unlink(imageFile.path, () => {});
    
-       res.json({
+      return res.json({
          success: true,
          message: "Image added successfully",
    
@@ -73,7 +73,7 @@ const imageAdd = async (req,res) => {
    
      } catch (error) {
        console.error(error);
-      res.json({
+      return res.json({
          success: false,
          message: "Internal server error",
        });
@@ -85,11 +85,11 @@ const imageList = async (req, res) => {
     const images = await imageModel.find().sort({ createdAt: -1 }); //it fetches recent most
     // const images = await imageModel.find({});
 
-    res.json({success: true, data:images,});
+   return res.json({success: true, data:images,});
 
   } catch (error) {
     console.error(error);
-    res.json({
+   return res.json({
       success: false,
       message: "Failed to fetch images",
     });
@@ -121,13 +121,13 @@ const imageDelete = async (req, res) => {
 
     await imageModel.findByIdAndDelete(id);
 
-    res.json({
+   return res.json({
       success: true,
       message: "Image deleted successfully",
     });
   } catch (error) {
     console.error(error);
-    res.json({
+   return res.json({
       success: false,
       message: "Failed to delete image",
     });

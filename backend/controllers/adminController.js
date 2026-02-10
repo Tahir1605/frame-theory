@@ -225,9 +225,9 @@ const updateAdmin = async (req, res) => {
 
   } catch (error) {
     console.error(error);
-    console.log("UPDATE ADMIN HIT");
-    console.log("BODY:", req.body);
-    console.log("FILE:", req.file);
+    // console.log("UPDATE ADMIN HIT");
+    // console.log("BODY:", req.body);
+    // console.log("FILE:", req.file);
 
     res.json({
       success: false,

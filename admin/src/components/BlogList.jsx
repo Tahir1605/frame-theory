@@ -5,7 +5,7 @@ import {
   XCircleIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
-
+ 
 /* ---------------- DEMO BLOG DATA ---------------- */
 const demoBlogs = Array.from({ length: 22 }, (_, i) => ({
   id: i + 1,
